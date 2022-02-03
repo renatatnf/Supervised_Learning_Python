@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan 14 08:11:23 2022
-
 @author: renata.fernandes
 """
 
