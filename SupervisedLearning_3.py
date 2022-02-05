@@ -8,10 +8,17 @@
 # Import necessary modules
 import numpy as np
 import pandas as pd
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, roc_auc_score, mean_squared_error
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, RandomizedSearchCV
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+import matplotlib.pyplot as plt
+from scipy.stats import randint
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import ElasticNet
+
+LOGREG_MAX_ITER = 500
+ELNET_MAX_ITER = 1000
 
 # Read the CSV file into a DataFrame: df
 df = pd.read_csv('Dados/diabetes.csv')
@@ -19,6 +26,10 @@ df = pd.read_csv('Dados/diabetes.csv')
 # Create arrays for features and target variable
 y = df['diabetes'].values
 X = df.drop(columns=['diabetes'])
+
+# Confusion matrix and classification report
+
+# KNN Example
 
 # Create training and test set
 X_train, X_test, y_train, y_test = train_test_split(X,y,test_size =0.4, random_state=42)
@@ -33,174 +44,162 @@ knn.fit(X_train,y_train)
 y_pred = knn.predict(X_test)
 
 # Generate the confusion matrix and classification report
-print('Confusion_matrix: ')
+print('KNN - Confusion_matrix: ')
 print(confusion_matrix(y_test, y_pred))
-print('Classification_report: ')
+print('KNN - Classification_report: ')
+print(classification_report(y_test, y_pred))
+
+# LogisticRegression Example
+
+# Create training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.4, random_state=42)
+
+# Create the classifier: logreg
+logreg = LogisticRegression(max_iter= LOGREG_MAX_ITER)
+
+# Fit the classifier to the training data
+logreg.fit(X_train,y_train)
+
+# Predict the labels of the test set: y_pred
+y_pred = logreg.predict(X_test)
+
+# Compute and print the confusion matrix and classification report
+print('LogisticRegression - Confusion_matrix: ')
+print(confusion_matrix(y_test, y_pred))
+print('LogisticRegression - Classification_report: ')
 print(classification_report(y_test, y_pred))
 
 
-# # Import the necessary modules
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.metrics import confusion_matrix, classification_report
+# ROC Curve
 
-# # Create training and test sets
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.4, random_state=42)
+# Compute predicted probabilities: y_pred_prob_knn
+y_pred_prob_knn = knn.predict_proba(X_test)[:,1]
+# Generate ROC curve values: fpr, tpr, thresholds
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob_knn)
 
-# # Create the classifier: logreg
-# logreg = LogisticRegression()
+# Plot ROC curve
+plt.plot([0, 1], [0, 1], 'k--')
+plt.plot(fpr, tpr)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('KNN - ROC Curve')
+plt.show()
 
-# # Fit the classifier to the training data
-# logreg.fit(X_train,y_train)
+# Compute predicted probabilities: y_pred_prob_logreg
+y_pred_prob_logreg = logreg.predict_proba(X_test)[:,1]
 
-# # Predict the labels of the test set: y_pred
-# y_pred = logreg.predict(X_test)
+# Generate ROC curve values: fpr, tpr, thresholds
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob_logreg)
 
-# # Compute and print the confusion matrix and classification report
-# print(confusion_matrix(y_test, y_pred))
-# print(classification_report(y_test, y_pred))
-
-
-# # Import necessary modules
-# from sklearn.metrics import roc_curve
-
-# # Compute predicted probabilities: y_pred_prob
-# y_pred_prob = logreg.predict_proba(X_test)[:,1]
-
-# # Generate ROC curve values: fpr, tpr, thresholds
-# fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob)
-
-# # Plot ROC curve
-# plt.plot([0, 1], [0, 1], 'k--')
-# plt.plot(fpr, tpr)
-# plt.xlabel('False Positive Rate')
-# plt.ylabel('True Positive Rate')
-# plt.title('ROC Curve')
-# plt.show()
+# Plot ROC curve
+plt.plot([0, 1], [0, 1], 'k--')
+plt.plot(fpr, tpr)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('LogisticRegression - ROC Curve')
+plt.show()
 
 
-# #AUC computation
-# # Import necessary modules
-# from sklearn.metrics import roc_auc_score
-# from sklearn.model_selection import cross_val_score
+#AUC computation
 
-# # Compute predicted probabilities: y_pred_prob
-# y_pred_prob = logreg.predict_proba(X_test)[:,1]
+# Compute and print AUC score
+print("AUC: {}".format(roc_auc_score(y_test, y_pred_prob_logreg)))
 
-# # Compute and print AUC score
-# print("AUC: {}".format(roc_auc_score(y_test, y_pred_prob)))
+# Compute cross-validated AUC scores: cv_auc
+cv_auc = cross_val_score(logreg, X, y, cv=5, scoring='roc_auc')
 
-# # Compute cross-validated AUC scores: cv_auc
-# cv_auc = cross_val_score(logreg, X, y, cv=5, scoring='roc_auc')
-
-# # Print list of AUC scores
-# print("AUC scores computed using 5-fold cross-validation: {}".format(cv_auc))
+# Print list of AUC scores
+print("AUC scores computed using 5-fold cross-validation: {}".format(cv_auc))
 
 
+#Hyperparameter tuning with GridSearchCV
 
-# #Hyperparameter tuning with GridSearchCV
-# # Import necessary modules
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.model_selection import GridSearchCV
+# Setup the hyperparameter grid
+c_space = np.logspace(-5, 8, 15)
+param_grid = {'C': c_space}
 
-# # Setup the hyperparameter grid
-# c_space = np.logspace(-5, 8, 15)
-# param_grid = {'C': c_space}
+# Instantiate a logistic regression classifier: logreg
+logreg = LogisticRegression(max_iter= LOGREG_MAX_ITER)
 
-# # Instantiate a logistic regression classifier: logreg
-# logreg = LogisticRegression()
+# Instantiate the GridSearchCV object: logreg_cv
+logreg_cv = GridSearchCV(logreg, param_grid, cv=5)
 
-# # Instantiate the GridSearchCV object: logreg_cv
-# logreg_cv = GridSearchCV(logreg, param_grid, cv=5)
+# Fit it to the data
+logreg_cv.fit(X,y)
 
-# # Fit it to the data
-# logreg_cv.fit(X,y)
-
-# # Print the tuned parameters and score
-# print("Tuned Logistic Regression Parameters: {}".format(logreg_cv.best_params_)) 
-# print("Best score is {}".format(logreg_cv.best_score_))
+# Print the tuned parameters and score
+print("Tuned Logistic Regression Parameters: {}".format(logreg_cv.best_params_)) 
+print("Best score is {}".format(logreg_cv.best_score_))
 
 
+#Hyperparameter tuning with RandomizedSearchCV
 
-# #Hyperparameter tuning with RandomizedSearchCV
-# # Import necessary modules
-# from scipy.stats import randint
-# from sklearn.tree import DecisionTreeClassifier
-# from sklearn.model_selection import RandomizedSearchCV
+# Setup the parameters and distributions to sample from: param_dist
+param_dist = {"max_depth": [3, None],
+              "max_features": randint(1, 9),
+              "min_samples_leaf": randint(1, 9),
+              "criterion": ["gini", "entropy"]}
 
-# # Setup the parameters and distributions to sample from: param_dist
-# param_dist = {"max_depth": [3, None],
-#               "max_features": randint(1, 9),
-#               "min_samples_leaf": randint(1, 9),
-#               "criterion": ["gini", "entropy"]}
+# Instantiate a Decision Tree classifier: tree
+tree = DecisionTreeClassifier()
 
-# # Instantiate a Decision Tree classifier: tree
-# tree = DecisionTreeClassifier()
+# Instantiate the RandomizedSearchCV object: tree_cv
+tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
 
-# # Instantiate the RandomizedSearchCV object: tree_cv
-# tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
+# Fit it to the data
+tree_cv.fit(X,y)
 
-# # Fit it to the data
-# tree_cv.fit(X,y)
-
-# # Print the tuned parameters and score
-# print("Tuned Decision Tree Parameters: {}".format(tree_cv.best_params_))
-# print("Best score is {}".format(tree_cv.best_score_))
+# Print the tuned parameters and score
+print("Tuned Decision Tree Parameters: {}".format(tree_cv.best_params_))
+print("Best score is {}".format(tree_cv.best_score_))
 
 
-# #Hold-out set in practice I: Classification
-# # Import necessary modules
-# from sklearn.model_selection import train_test_split
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.model_selection import GridSearchCV
+#Hold-out set in practice I: Classification
 
-# # Create the hyperparameter grid
-# c_space = np.logspace(-5, 8, 15)
-# param_grid = {'C': c_space, 'penalty': ['l1', 'l2']}
+# Create the hyperparameter grid
+c_space = np.logspace(-5, 8, 15)
+param_grid = {'C': c_space, 'penalty': ['l1', 'l2']}
 
-# # Instantiate the logistic regression classifier: logreg
-# logreg = LogisticRegression()
+# Instantiate the logistic regression classifier: logreg
+logreg = LogisticRegression(max_iter= LOGREG_MAX_ITER)
 
-# # Create train and test sets
-# X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.4,random_state=42)
+# Create train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.4,random_state=42)
 
-# # Instantiate the GridSearchCV object: logreg_cv
-# logreg_cv = GridSearchCV(logreg,param_grid,cv=5)
+# Instantiate the GridSearchCV object: logreg_cv
+logreg_cv = GridSearchCV(logreg,param_grid,cv=5)
 
-# # Fit it to the training data
-# logreg_cv.fit(X_train,y_train)
+# Fit it to the training data
+logreg_cv.fit(X_train,y_train)
 
-# # Print the optimal parameters and best score
-# print("Tuned Logistic Regression Parameter: {}".format(logreg_cv.best_params_))
-# print("Tuned Logistic Regression Accuracy: {}".format(logreg_cv.best_score_))
+# Print the optimal parameters and best score
+print("Tuned Logistic Regression Parameter: {}".format(logreg_cv.best_params_))
+print("Tuned Logistic Regression Accuracy: {}".format(logreg_cv.best_score_))
 
 
-# #Hold-out set in practice II: Regression
-# # Import necessary modules
-# from sklearn.linear_model import ElasticNet
-# from sklearn.metrics import mean_squared_error
-# from sklearn.model_selection import train_test_split,GridSearchCV
+#Hold-out set in practice II: Regression
 
-# # Create train and test sets
-# X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.4,random_state=42)
+# Create train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.4,random_state=42)
 
-# # Create the hyperparameter grid
-# l1_space = np.linspace(0, 1, 30)
-# param_grid = {'l1_ratio': l1_space}
+# Create the hyperparameter grid
+l1_space = np.linspace(0, 1, 30)
+param_grid = {'l1_ratio': l1_space}
 
-# # Instantiate the ElasticNet regressor: elastic_net
-# elastic_net = ElasticNet()
+# Instantiate the ElasticNet regressor: elastic_net
+elastic_net = ElasticNet(max_iter= ELNET_MAX_ITER)
 
-# # Setup the GridSearchCV object: gm_cv
-# gm_cv = GridSearchCV(elastic_net, param_grid, cv=5)
+# Setup the GridSearchCV object: gm_cv
+gm_cv = GridSearchCV(elastic_net, param_grid, cv=5)
 
-# # Fit it to the training data
-# gm_cv.fit(X_train, y_train)
+# Fit it to the training data
+gm_cv.fit(X_train, y_train)
 
-# # Predict on the test set and compute metrics
-# y_pred = gm_cv.predict(X_test)
-# r2 = gm_cv.score(X_test, y_test)
-# mse = mean_squared_error(y_test, y_pred)
-# print("Tuned ElasticNet l1 ratio: {}".format(gm_cv.best_params_))
-# print("Tuned ElasticNet R squared: {}".format(r2))
-# print("Tuned ElasticNet MSE: {}".format(mse))
+# Predict on the test set and compute metrics
+y_pred = gm_cv.predict(X_test)
+r2 = gm_cv.score(X_test, y_test)
+mse = mean_squared_error(y_test, y_pred)
+print("Tuned ElasticNet l1 ratio: {}".format(gm_cv.best_params_))
+print("Tuned ElasticNet R squared: {}".format(r2))
+print("Tuned ElasticNet MSE: {}".format(mse))
 

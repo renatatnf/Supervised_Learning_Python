@@ -134,7 +134,7 @@ print("Lasso coefficients: {}".format(lasso_coef))
 
 # Plot the coefficients
 plt.figure()
-plt.title('Lasso coefficients by features')
+plt.title('Lasso regression - Features x Coefficients')
 plt.ylabel('Lasso coefficients')
 plt.plot(range(len(X_all.columns)), lasso_coef)
 plt.xticks(range(len(X_all.columns)), X_all.columns.values, rotation=60)
@@ -156,7 +156,7 @@ def display_plot(cv_scores, cv_scores_std, alpha_space):
     ax.axhline(np.max(cv_scores), linestyle='--', color='.5')
     ax.set_xlim([alpha_space[0], alpha_space[-1]])
     ax.set_xscale('log')
-    plt.title("Alpha x CV Score")
+    plt.title("Ridge regression - Alpha x CV Score")
     plt.show()
 
 # Setup the array of alphas and lists to store scores
