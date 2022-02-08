@@ -18,7 +18,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import ElasticNet
 
 LOGREG_MAX_ITER = 500
-ELNET_MAX_ITER = 1000
+ELNET_MAX_ITER = 100000
 
 # Read the CSV file into a DataFrame: df
 df = pd.read_csv('Dados/diabetes.csv')
@@ -183,7 +183,7 @@ print("Tuned Logistic Regression Accuracy: {}".format(logreg_cv.best_score_))
 X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.4,random_state=42)
 
 # Create the hyperparameter grid
-l1_space = np.linspace(0, 1, 30)
+l1_space = np.linspace(0.01, 1, 30)
 param_grid = {'l1_ratio': l1_space}
 
 # Instantiate the ElasticNet regressor: elastic_net
@@ -202,4 +202,3 @@ mse = mean_squared_error(y_test, y_pred)
 print("Tuned ElasticNet l1 ratio: {}".format(gm_cv.best_params_))
 print("Tuned ElasticNet R squared: {}".format(r2))
 print("Tuned ElasticNet MSE: {}".format(mse))
-
