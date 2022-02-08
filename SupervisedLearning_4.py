@@ -2,34 +2,36 @@
 """
 @author: renata.fernandes
 """
+
 # Preprocessing and pipelines
 
-# #Exploring categorical features
-# # Import pandas
-# import pandas as pd
+#Exploring categorical features
+# Import pandas
+import pandas as pd
+import matplotlib.pyplot as plt
 
-# # Read 'gapminder.csv' into a DataFrame: df
-# df = pd.read_csv('gapminder.csv')
+# Read 'gapminder.csv' into a DataFrame: df
+df = pd.read_csv('Dados/gm_2008_region.csv')
 
-# # Create a boxplot of life expectancy per region
-# df.boxplot('life', 'Region', rot=60)
+# Create a boxplot of life expectancy per region
+df.boxplot('life', 'Region', rot=60)
 
-# # Show the plot
-# plt.show()
+# Show the plot
+plt.show()
 
 
-# #Creating dummy variables
-# # Create dummy variables: df_region
-# df_region = pd.get_dummies(df)
+#Creating dummy variables
+# Create dummy variables: df_region
+df_region = pd.get_dummies(df)
 
-# # Print the columns of df_region
-# print(df_region.columns)
+# Print the columns of df_region
+print(df_region.columns)
 
-# # Create dummy variables with drop_first=True: df_region
-# df_region = pd.get_dummies(df,drop_first=True)
+# Create dummy variables with drop_first=True: df_region
+df_region = pd.get_dummies(df,drop_first=True)
 
-# # Print the new columns of df_region
-# print(df_region.columns)
+# Print the new columns of df_region
+print(df_region.columns)
 
 
 
