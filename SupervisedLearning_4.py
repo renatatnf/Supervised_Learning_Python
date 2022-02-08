@@ -5,10 +5,19 @@
 
 # Preprocessing and pipelines
 
-#Exploring categorical features
 # Import pandas
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import cross_val_score
+from sklearn.impute import SimpleImputer
+from sklearn.svm import SVC
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+#Exploring categorical features
 
 # Read 'gapminder.csv' into a DataFrame: df
 df = pd.read_csv('Dados/gm_2008_region.csv')
@@ -20,94 +29,100 @@ df.boxplot('life', 'Region', rot=60)
 plt.show()
 
 
-#Creating dummy variables
+# Creating dummy variables
 # Create dummy variables: df_region
 df_region = pd.get_dummies(df)
 
 # Print the columns of df_region
 print(df_region.columns)
 
-# Create dummy variables with drop_first=True: df_region
+# Create dummy variables with drop_first=True: df_region (drop_first=True to drop the unneeded dummy variable)
 df_region = pd.get_dummies(df,drop_first=True)
 
-# Print the new columns of df_region
+# Print the new columns of df_region ( Columns without 'Region_America')
 print(df_region.columns)
 
 
+#Regression with categorical features
 
-# #Regression with categorical features
-# # Import necessary modules
-# from sklearn.linear_model import Ridge
-# from sklearn.model_selection import cross_val_score
+y = df_region['life'].values
+X = df_region.drop(columns=['life'])
 
-# # Instantiate a ridge regressor: ridge
-# ridge = Ridge(alpha=0.5, normalize=True)
+# Instantiate a ridge regressor: ridge
+ridge = Ridge(alpha=0.5, normalize=True)
 
-# # Perform 5-fold cross-validation: ridge_cv
-# ridge_cv = cross_val_score(ridge, X,y,cv=5)
+# Perform 5-fold cross-validation: ridge_cv
+ridge_cv = cross_val_score(ridge, X,y,cv=5)
 
-# # Print the cross-validated scores
-# print(ridge_cv)
-
+# Print the cross-validated scores
+print(ridge_cv)
 
 
-# #Dropping missing data
-# # Convert '?' to NaN
-# df[df == '?'] = np.nan
+#Dropping missing data
 
-# # Print the number of NaNs
-# print(df.isnull().sum())
+df = pd.read_csv('Dados/house-votes-84.csv', sep=',')
 
-# # Print shape of original DataFrame
-# print("Shape of Original DataFrame: {}".format(df.shape))
+# Convert '?' to NaN
+df[df == '?'] = np.nan
 
-# # Drop missing values and print shape of new DataFrame
-# df = df.dropna()
+# Print the number of NaNs
+print(df.isnull().sum())
 
-# # Print shape of new DataFrame
-# print("Shape of DataFrame After Dropping All Rows with Missing Values: {}".format(df.shape))
+# Print shape of original DataFrame
+print("Shape of Original DataFrame: {}".format(df.shape))
+
+# Drop missing values and print shape of new DataFrame
+df = df.dropna()
+
+# Print shape of new DataFrame
+print("Shape of DataFrame After Dropping All Rows with Missing Values: {}".format(df.shape))
 
 
-# #Imputing missing data in a ML Pipeline I
-# # Import the Imputer module
-# from sklearn.preprocessing import Imputer
-# from sklearn.svm import SVC
+#Imputing missing data in a ML Pipeline I
 
-# # Setup the Imputation transformer: imp
+# Setup the Imputation transformer: imp
 # imp = Imputer(missing_values='NaN', strategy='most_frequent', axis=0)
+imp = SimpleImputer(missing_values= np.nan, strategy='most_frequent')
 
-# # Instantiate the SVC classifier: clf
-# clf = SVC()
+# Instantiate the SVC classifier: clf
+clf = SVC()
 
-# # Setup the pipeline with the required steps: steps
-# steps = [('imputation', imp),
-#         ('SVM', clf)]
+# Setup the pipeline with the required steps: steps
+steps = [('imputation', imp),
+        ('SVM', clf)]
 
-
-# #Imputing missing data in a ML Pipeline II
-# # Import necessary modules
-# from sklearn.preprocessing import Imputer
-# from sklearn.pipeline import Pipeline
-# from sklearn.svm import SVC
-
-# # Setup the pipeline steps: steps
+#Imputing missing data in a ML Pipeline II
+# Setup the pipeline steps: steps
 # steps = [('imputation', Imputer(missing_values='NaN', strategy='most_frequent', axis=0)),
 #         ('SVM', SVC())]
+steps = [('imputation', SimpleImputer(missing_values=np.nan, strategy='most_frequent')),
+        ('SVM', SVC())]
 
-# # Create the pipeline: pipeline
-# pipeline = Pipeline(steps)
+# Create the pipeline: pipeline
+pipeline = Pipeline(steps)
 
-# # Create training and test sets
-# X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.3,random_state=42)
+# Reading data
+df = pd.read_csv('Dados/house-votes-84.csv', sep=',')
+# Convert '?' to NaN
+df[df == '?'] = np.nan
+df[df == 'y'] = 1
+df[df == 'n'] = 0
 
-# # Fit the pipeline to the train set
-# pipeline.fit(X_train, y_train)
+# Create arrays for the features and the response variable
+y = df['party'].values
+X = df.drop('party', axis=1).values
 
-# # Predict the labels of the test set
-# y_pred = pipeline.predict(X_test)
+# Create training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.3,random_state=42)
 
-# # Compute metrics
-# print(classification_report(y_test, y_pred))
+# Fit the pipeline to the train set
+pipeline.fit(X_train, y_train)
+
+# Predict the labels of the test set
+y_pred = pipeline.predict(X_test)
+
+# Compute metrics
+print(classification_report(y_test, y_pred))
 
 
 
