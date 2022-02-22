@@ -5,7 +5,7 @@
 
 # Preprocessing and pipelines
 
-# Import pandas
+# Import necessary modules
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,17 +33,20 @@ plt.show()
 
 
 # Creating dummy variables
+# Print the columns of df
+print("Columns of Gapminder dataframe: {}".format(df.columns))
+
 # Create dummy variables: df_region
 df_region = pd.get_dummies(df)
 
 # Print the columns of df_region
-print(df_region.columns)
+print("Columns of Gapminder dataframe with dummy variables: {}".format(df_region.columns))
 
 # Create dummy variables with drop_first=True: df_region (drop_first=True to drop the unneeded dummy variable)
 df_region = pd.get_dummies(df,drop_first=True)
 
 # Print the new columns of df_region ( Columns without 'Region_America')
-print(df_region.columns)
+print("Columns of Gapminder dataframe with dummy variables (without the unneeded dummy variable): {}".format(df_region.columns))
 
 
 #Regression with categorical features
@@ -58,7 +61,7 @@ ridge = Ridge(alpha=0.5, normalize=True)
 ridge_cv = cross_val_score(ridge, X,y,cv=5)
 
 # Print the cross-validated scores
-print(ridge_cv)
+print("Gapminder dataframe - Ridge regression cross-validated scores : {}".format(ridge_cv))
 
 
 #Dropping missing data
@@ -69,16 +72,16 @@ df = pd.read_csv('Dados/house-votes-84.csv', sep=',')
 df[df == '?'] = np.nan
 
 # Print the number of NaNs
-print(df.isnull().sum())
+print("HouseVotes dataframe - Print the number of NaNs: {}".format(df.isnull().sum()))
 
 # Print shape of original DataFrame
-print("Shape of Original DataFrame: {}".format(df.shape))
+print("HouseVotes dataframe - Shape of Original DataFrame: {}".format(df.shape))
 
 # Drop missing values and print shape of new DataFrame
 df = df.dropna()
 
 # Print shape of new DataFrame
-print("Shape of DataFrame After Dropping All Rows with Missing Values: {}".format(df.shape))
+print("HouseVotes dataframe - Shape of DataFrame After Dropping All Rows with Missing Values: {}".format(df.shape))
 
 
 #Imputing missing data in a ML Pipeline I
@@ -125,7 +128,7 @@ pipeline.fit(X_train, y_train)
 y_pred = pipeline.predict(X_test)
 
 # Compute metrics
-print(classification_report(y_test, y_pred))
+print("HouseVotes dataframe - Classification report: {}".format(classification_report(y_test, y_pred)))
 
 
 #Centering and scaling your data
@@ -141,12 +144,12 @@ X = df.drop('quality', axis=1).values
 X_scaled = scale(X)
 
 # Print the mean and standard deviation of the unscaled features
-print("Mean of Unscaled Features: {}".format(np.mean(X))) 
-print("Standard Deviation of Unscaled Features: {}".format(np.std(X)))
+print("White-wine dataframe - Mean of Unscaled Features: {}".format(np.mean(X))) 
+print("White-wine dataframe - Standard Deviation of Unscaled Features: {}".format(np.std(X)))
 
 # Print the mean and standard deviation of the scaled features
-print("Mean of Scaled Features: {}".format(np.mean(X_scaled))) 
-print("Standard Deviation of Scaled Features: {}".format(np.std(X_scaled)))
+print("White-wine dataframe - Mean of Scaled Features: {}".format(np.mean(X_scaled))) 
+print("White-wine dataframe -Standard Deviation of Scaled Features: {}".format(np.std(X_scaled)))
 
 
 #Centering and scaling in a pipeline
@@ -168,8 +171,8 @@ knn_scaled = pipeline.fit(X_train, y_train)
 knn_unscaled = KNeighborsClassifier().fit(X_train, y_train)
 
 # Compute and print metrics
-print('Accuracy with Scaling: {}'.format(knn_scaled.score(X_test,y_test)))
-print('Accuracy without Scaling: {}'.format(knn_unscaled.score(X_test,y_test)))
+print('White-wine dataframe - Accuracy with Scaling: {}'.format(knn_scaled.score(X_test,y_test)))
+print('White-wine dataframe - Accuracy without Scaling: {}'.format(knn_unscaled.score(X_test,y_test)))
 
 
 #Bringing it all together I: Pipeline for classification
@@ -196,9 +199,9 @@ cv.fit(X_train, y_train)
 y_pred = cv.predict(X_test)
 
 # Compute and print metrics
-print("Accuracy: {}".format(cv.score(X_test, y_test)))
-print(classification_report(y_test, y_pred))
-print("Tuned Model Parameters: {}".format(cv.best_params_))
+print("White-wine dataframe - GridSearchCV Accuracy: {}".format(cv.score(X_test, y_test)))
+print("White-wine dataframe - GridSearchCV classification report: {}".format(classification_report(y_test, y_pred)))
+print("White-wine dataframe - GridSearchCV Tuned Model Parameters: {}".format(cv.best_params_))
 
 
 #Bringing it all together II: Pipeline for regression
@@ -234,5 +237,5 @@ gm_cv.fit(X_train, y_train)
 
 # Compute and print the metrics
 r2 = gm_cv.score(X_test, y_test)
-print("Tuned ElasticNet Alpha: {}".format(gm_cv.best_params_))
-print("Tuned ElasticNet R squared: {}".format(r2))
+print("Gapminder dataframe - Tuned ElasticNet Alpha: {}".format(gm_cv.best_params_))
+print("Gapminder dataframe - Tuned ElasticNet R squared: {}".format(r2))
